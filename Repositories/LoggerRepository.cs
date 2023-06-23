@@ -7,6 +7,7 @@ namespace shiftlogger.Repositories
     public class LoggerRepository : IBaseRepository
     {
         private MyContext _context;
+       
         public LoggerRepository(MyContext context)
         {
             _context = context;
@@ -63,10 +64,26 @@ namespace shiftlogger.Repositories
             return entity;
         }
 
-        public async Task<List<Logger>> GetAll()
+        public async Task<Logger> FindByActivity(string activity)
         {
-              var myTask = Task.Run( () => _context.Loggers.ToList());
-              List<Logger> entities = await myTask;
+           var myTask = Task.Run( () => _context.Loggers.FirstOrDefault(x => x.Atividade == activity));
+            var entity = await myTask;
+            if (entity == null)
+            {
+                entity = new Logger();
+            }
+            return entity;
+        }
+
+        public async Task<IEnumerable<Logger>> GetAll(int pagenumber, int quantity)
+        {
+              var myTask = Task.Run(() => _context.Loggers
+                                          .Skip(pagenumber * quantity)
+                                          .ToList()
+                                          .Take(quantity)
+                                          .OrderBy(x => x.loggerID));
+              //var myTask = Task.Run(() => _context.Loggers.ToList());
+              IEnumerable<Logger> entities = await myTask;
               return  entities;
         }
 

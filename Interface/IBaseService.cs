@@ -9,7 +9,7 @@ namespace shiftlogger.Interface
 {
     public interface IBaseService
     {
-          Task<CustomResult> GetAll();
+          Task<CustomResult> GetAll(int pagenumber, int quantity);
 
     Task<CustomResult> InitLogger(LoggerInsertDto newLog);
 

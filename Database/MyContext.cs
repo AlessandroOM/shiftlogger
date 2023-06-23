@@ -7,7 +7,7 @@ namespace Database;
 
 public class MyContext : DbContext
 {
-    public DbSet<Logger>? Loggers { get; set; }
+    public virtual DbSet<Logger>? Loggers { get; set; }
 
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -21,6 +21,11 @@ public class MyContext : DbContext
         modelBuilder.Entity<Logger>(new LoggerMap().Configure);
         modelBuilder.Entity<Logger>();
          
+    }
+
+    public MyContext(DbContextOptions<MyContext> options)
+        : base(options)
+    {
     }
     
 }

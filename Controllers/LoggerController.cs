@@ -14,6 +14,7 @@ namespace shiftlogger.Controllers
     public class LoggerController : ControllerBase
     {
         private IBaseService _service;
+        private int _pageNumber = 0;
         
         public LoggerController(IBaseService service)
         {
@@ -31,13 +32,21 @@ namespace shiftlogger.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<LoggerDto>>> Get()
+        public async Task<ActionResult<List<LoggerDto>>> Get(int pagenumber, int quantity)
         {
+            if (pagenumber == 1 )
+                {
+                    _pageNumber = 0;
+                } else {
+                    _pageNumber = pagenumber - 1;
+                }
+
             try
             {
-                var result = await _service.GetAll();
+                var result = await _service.GetAll(_pageNumber, quantity);
                 if (result != null){
                     if (result.Success){
+                        _pageNumber++;
                         return Ok(result.Data);
                     } else {
                         string errors = prepareErrors(result.Messages);

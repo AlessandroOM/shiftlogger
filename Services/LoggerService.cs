@@ -48,22 +48,24 @@ namespace shiftlogger.Services
                 var prevData = await _repository.FindById(Id);
                 if (prevData != null)
                 {
-                    if (endTime == null || endTime < prevData.Inicio)
-                    {
-                        result.Success = false;
-                        result.Messages.Add("End time must be greater than start time.");
-                    } else{
-                        var response = await _repository.FinalizeLogger(Id, endTime);
-                        result.Success = true;
-                        result.Data = _mapper.Map<Logger, LoggerDto>(response);
-                        result.Messages.Add("Log finalized successfully.");
-                    }
+                    prevData.Fim = endTime;
+                     LoggerValidator validator = new LoggerValidator();
+                     ValidationResult results = validator.Validate(prevData);
+                     if(! results.IsValid)
+                        {
+                            transferErrors(result, results);
+                            result.Success = false;
+                        } else{
+                            var response = await _repository.FinalizeLogger(Id, endTime);
+                            result.Success = true;
+                            result.Data = _mapper.Map<Logger, LoggerDto>(response);
+                            result.Messages.Add("Log finalized successfully.");
+                        }
                     
                 } else{
                     result.Success = false;
                     result.Messages.Add("Log not found.");
                 }
-                   
                
             }
             catch(Exception ex)
@@ -95,14 +97,15 @@ namespace shiftlogger.Services
             return result;
         }
 
-        public async Task<CustomResult> GetAll()
+        public async Task<CustomResult> GetAll(int pagenumber, int quantity)
         {
             var result = new CustomResult();
 
             try
             {
-                var data = await _repository.GetAll();
-                var dataList = _mapper.Map<List<Logger>, List<LoggerDto>>(data);
+                IEnumerable<Logger> data = await _repository.GetAll(pagenumber,quantity);
+                List<Logger> loggerList = data.ToList();
+                var dataList = _mapper.Map<List<Logger>, List<LoggerDto>>(loggerList);
                 result.Success = true;
                 result.Data = dataList;
                 result.Messages.Add("Logs retrieved successfully.");
@@ -124,7 +127,6 @@ namespace shiftlogger.Services
             try
             {
                 var data = _mapper.Map<LoggerInsertDto, Logger>(newLog);
-
                 LoggerValidator validator = new LoggerValidator();
                 ValidationResult results = validator.Validate(data);
                 if(! results.IsValid)
@@ -134,10 +136,19 @@ namespace shiftlogger.Services
                     return result;
                 }
 
-                var response = await _repository.InitLogger(data);
-                result.Success = true;
-                result.Data = _mapper.Map<Logger, LoggerDto>(response);
-                result.Messages.Add("Log initialized successfully.");
+                var LoggerExists = (await _repository.FindByActivity(newLog.Atividade) != null);
+                if (!LoggerExists)    
+                {
+                    var response = await _repository.InitLogger(data);
+                    result.Success = true;
+                    result.Data = _mapper.Map<Logger, LoggerDto>(response);
+                    result.Messages.Add("Log initialized successfully.");
+                } else 
+                {
+                    result.Success = false;
+                    result.Messages.Add("Log already exists.");
+                }
+                
             }
             catch(Exception ex)
             {

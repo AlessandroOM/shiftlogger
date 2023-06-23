@@ -8,11 +8,12 @@ namespace shiftlogger.Interface
 {
     public interface IBaseRepository
     {
-        Task<List<Logger>> GetAll();
+        Task<IEnumerable<Logger>> GetAll(int pagenumber, int quantity);
 
         Task<Logger> InitLogger(Logger newLog);
 
         Task<Logger> FindById(int Id);
+         Task<Logger> FindByActivity(string activity);
 
         Task<Logger> Delete(int Id);
 
