@@ -1,19 +1,27 @@
 using AutoMapper;
 using Database;
 using Map;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using shiftlogger.Interface;
 using shiftlogger.Repositories;
 using shiftlogger.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var isTest = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Test";
 // Add services to the container.
 
 builder.Services.AddControllers();
 IMapper mapper = Map.Mapping.InitializeAutomapper();
 builder.Services.AddSingleton(mapper);
-builder.Services.AddDbContext<MyContext>();
+if (!isTest)
+{
+    builder.Services.AddDbContext<MyContext>(o => o.UseSqlite("Data Source=shiftLogger.db"));
+} else
+{
+    builder.Services.AddDbContext<MyContext>(o => o.UseInMemoryDatabase("shiftLogger"));
+}
+
 builder.Services.AddScoped(typeof(IBaseRepository), typeof(LoggerRepository));
 builder.Services.AddScoped(typeof(IBaseService), typeof(LoggerService));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -14,6 +14,7 @@ namespace shiftlogger.Services
         private readonly IMapper _mapper;
         public LoggerService(IMapper mapper, IBaseRepository repository)
         {
+            
             _mapper = mapper;
             _repository = repository;
         }
@@ -25,9 +26,17 @@ namespace shiftlogger.Services
             try
             {
                 var response = await _repository.Delete(Id);
-                result.Success = true;
-                result.Data = _mapper.Map<Logger, LoggerDto>(response);
-                result.Messages.Add("Log deleted successfully.");
+                result.Success = (response != null && response.loggerID == Id);
+                if (result.Success)
+                {
+                    result.Data = _mapper.Map<Logger, LoggerDto>(response);
+                    result.Messages.Add("Log deleted successfully.");
+                } else
+                {
+                    result.Data = null;
+                    result.Messages.Add($"Log id {Id} nof found/deleted.");
+                }
+                
             }
             catch(Exception ex)
             {
@@ -51,7 +60,7 @@ namespace shiftlogger.Services
                     prevData.Fim = endTime;
                      LoggerValidator validator = new LoggerValidator();
                      ValidationResult results = validator.Validate(prevData);
-                     if(! results.IsValid)
+                     if(!results.IsValid)
                         {
                             transferErrors(result, results);
                             result.Success = false;
@@ -84,9 +93,16 @@ namespace shiftlogger.Services
              try
             {
                 var response = await _repository.FindById(Id);
-                result.Success = true;
-                result.Data = _mapper.Map<Logger, LoggerDto>(response);
-                result.Messages.Add("Log finalized successfully.");
+                result.Success = (response != null && response.loggerID == Id);
+                if (result.Success)
+                {
+                    result.Data = _mapper.Map<Logger, LoggerDto>(response);
+                    result.Messages.Add("Log found successfully.");
+                } else
+                {
+                    result.Data = null;
+                    result.Messages.Add($"Id {Id} not found.");
+                }    
             }
             catch(Exception ex)
             {
@@ -136,8 +152,8 @@ namespace shiftlogger.Services
                     return result;
                 }
 
-                var LoggerExists = (await _repository.FindByActivity(newLog.Atividade) != null);
-                if (!LoggerExists)    
+                var LoggerExists = await _repository.FindByActivity(newLog.Atividade);
+                if (LoggerExists != null || LoggerExists.loggerID == 0)    
                 {
                     var response = await _repository.InitLogger(data);
                     result.Success = true;

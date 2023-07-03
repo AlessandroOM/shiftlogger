@@ -96,5 +96,25 @@ namespace shiftlogger.Repositories
            return newLog;
 
         }
+
+        public async Task<int> CountRecords()
+        {
+             var myTask = Task.Run(() => _context.Loggers.Count());
+             var contagem = await myTask;
+             return contagem;
+        }
+
+        public async Task<int> DeleteAll()
+        {
+            var records = await this.GetAll(1, _context.Loggers.Count());
+            int counter = 0;
+            foreach (var item in records)
+            {
+                await this.Delete(item.loggerID);
+                counter ++;
+            }
+
+            return counter;
+        }
     }
 }

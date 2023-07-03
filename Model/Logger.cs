@@ -20,9 +20,9 @@ namespace Models
 
         public DateTime? Fim { get; set; }
         
-         [Required]
-         [MaxLength(50)]
-        public string? Atividade { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string Atividade { get; set; }
     }
 
 }
